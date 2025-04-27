@@ -130,8 +130,13 @@ def get_all_store_statuses(conn, earliest_time):
                 })
             
             for row in in_window:
+                # Fix for timestamp with timezone offset
+                timestamp = row[0]
+                if isinstance(timestamp, str):
+                    timestamp = datetime.fromisoformat(timestamp).astimezone(pytz.UTC)
+                
                 statuses.append({
-                    'timestamp_utc': row[0], 
+                    'timestamp_utc': timestamp, 
                     'status': row[1]
                 })
             

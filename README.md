@@ -1,4 +1,4 @@
-A system that generates reports on store uptime and downtime based on status data. This application monitors store activity, calculates uptime/downtime metrics across different time windows, and provides an API to request and download reports.
+Generates reports on store uptime and downtime based on status data. This application monitors store activity, calculates uptime/downtime metrics across different time windows, and provides an API to request and download reports.
 
 ## Features
 
@@ -43,7 +43,9 @@ A system that generates reports on store uptime and downtime based on status dat
 
 ### Running the API server
 
+```
 flask run
+```
 
 ### Triggering a report
 
