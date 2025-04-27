@@ -63,6 +63,7 @@ def main():
         print(3)
         write_report_to_csv(report)
         print("Report saved as store_uptime_report.csv")
+        return "store_uptime_report.csv"
     finally:
         conn.close()
 
@@ -258,6 +259,3 @@ def write_report_to_csv(report):
         writer.writeheader()
         for row in report:
             writer.writerow(row)
-
-if __name__ == "__main__":
-    main()

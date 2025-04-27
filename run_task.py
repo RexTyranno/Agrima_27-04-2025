@@ -1,6 +1,6 @@
-from tasks import add
+from tasks import generate_report
 
 if __name__ == '__main__':
     # task is added to the queue
-    result = add.delay(7, 8)
-    print(f"Dispatched add(7, 8) → task id: {result.id!r}")
+    result = generate_report.delay()
+    print(f"Dispatched report generation task → task id: {result.id!r}")
