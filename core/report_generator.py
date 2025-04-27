@@ -20,7 +20,6 @@ DB_CONN_PARAMS = dict(
 DEFAULT_TZ = "America/Chicago"
 
 def python_to_menu_dow(py_date):
-    print(1)
     return (py_date.weekday() + 1) % 7
 
 def main(task_id=None):
@@ -31,7 +30,7 @@ def main(task_id=None):
         'last_day':   (now_utc - timedelta(days=1), now_utc),
         'last_week':  (now_utc - timedelta(weeks=1), now_utc),
     }
-    print(2)
+
     conn = psycopg2.connect(**DB_CONN_PARAMS)
     try:
         # batch queries for optimisation
@@ -57,7 +56,7 @@ def main(task_id=None):
                     row[f'uptime_{name}'] = up_s / 3600.0
                     row[f'downtime_{name}'] = down_s / 3600.0
             report.append(row)
-        print(3)
+
         filename = write_report_to_csv(report, task_id)
         print(f"Report saved as {filename}")
         return filename
@@ -71,7 +70,6 @@ def get_all_timezones(conn):
         for store_id, tz_str in cur:
             timezones[store_id] = tz_str
     return timezones
-    print(4)
 
 def get_all_store_hours(conn):
     store_hours = defaultdict(lambda: defaultdict(list))
@@ -85,12 +83,10 @@ def get_all_store_hours(conn):
                 'start_time_local': row['start_time_local'],
                 'end_time_local': row['end_time_local']
             })
-    print(5)
     return store_hours
 
 def get_all_store_statuses(conn, earliest_time):
     store_statuses = defaultdict(list)
-    print(6)
     store_ids = set()
     with conn.cursor() as cur:
         cur.execute("SELECT store_id FROM store_status")
@@ -140,7 +136,6 @@ def get_all_store_statuses(conn, earliest_time):
                 })
             
             store_statuses[store_id] = statuses
-    print(7)
     return store_statuses
 
 def get_business_intervals(store_id, window_start_utc, window_end_utc, tz_name, store_hours):
@@ -148,7 +143,7 @@ def get_business_intervals(store_id, window_start_utc, window_end_utc, tz_name, 
 
     local_start = window_start_utc.astimezone(tz)
     local_end = window_end_utc.astimezone(tz)
-    print(8)
+
     intervals_utc = []
     cur_date = local_start.date()
     last_date = local_end.date()
@@ -174,7 +169,7 @@ def get_business_intervals(store_id, window_start_utc, window_end_utc, tz_name, 
             if seg_e > seg_s:
                 intervals_utc.append((seg_s, seg_e))
         cur_date += timedelta(days=1)
-    print(9)
+    
     if intervals_utc:
         intervals_utc.sort()
         merged = []
@@ -185,7 +180,6 @@ def get_business_intervals(store_id, window_start_utc, window_end_utc, tz_name, 
                 merged[-1] = (merged[-1][0], max(merged[-1][1], e))
         
         return merged
-    print(10)
     
     return []
 
@@ -193,7 +187,7 @@ def compute_uptime_downtime(store_id, window_start, window_end, tz_name, store_h
     business_intervals = get_business_intervals(
         store_id, window_start, window_end, tz_name, store_hours
     )
-    print(11)
+
     timeline = [s for s in statuses if window_start <= s['timestamp_utc'] <= window_end]
 
     if not timeline or timeline[0]['timestamp_utc'] > window_start:
@@ -242,7 +236,7 @@ def compute_uptime_downtime(store_id, window_start, window_end, tz_name, store_h
                     down_seconds += duration
     
     return up_seconds, down_seconds
-    print(12)
+
 def write_report_to_csv(report, task_id=None):
     fieldnames = [
         'store_id',
@@ -251,13 +245,18 @@ def write_report_to_csv(report, task_id=None):
         'uptime_last_week', 'downtime_last_week',
     ]
     
+    # Create reports directory if it doesn't exist
+    reports_dir = os.path.join('data', 'reports')
+    os.makedirs(reports_dir, exist_ok=True)
+    
     # Create filename with task_id if provided
     filename = f"store_uptime_report_{task_id}.csv" if task_id else "store_uptime_report.csv"
+    filepath = os.path.join(reports_dir, filename)
     
-    with open(filename, 'w', newline='') as f:
+    with open(filepath, 'w', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         for row in report:
             writer.writerow(row)
     
-    return filename
+    return filepath

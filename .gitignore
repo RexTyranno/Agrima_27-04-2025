@@ -3,3 +3,4 @@ __pycache__
 given_csv
 store_uptime_report.csv
 .env
+*.__pycache__
