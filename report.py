@@ -23,11 +23,8 @@ def python_to_menu_dow(py_date):
     print(1)
     return (py_date.weekday() + 1) % 7
 
-def main():
-    specific_datetime = datetime.strptime("2024-10-18 03:30:12.642", "%Y-%m-%d %H:%M:%S.%f")
-    specific_timezone = pytz.timezone("Asia/Kolkata")  # +0530 == IST
-    specific_datetime = specific_timezone.localize(specific_datetime)
-    now_utc = specific_datetime.astimezone(pytz.UTC)  
+def main(task_id=None):
+    now_utc = datetime.now(pytz.UTC)
     
     windows = {
         'last_hour':  (now_utc - timedelta(hours=1), now_utc),
@@ -61,9 +58,9 @@ def main():
                     row[f'downtime_{name}'] = down_s / 3600.0
             report.append(row)
         print(3)
-        write_report_to_csv(report)
-        print("Report saved as store_uptime_report.csv")
-        return "store_uptime_report.csv"
+        filename = write_report_to_csv(report, task_id)
+        print(f"Report saved as {filename}")
+        return filename
     finally:
         conn.close()
 
@@ -246,7 +243,7 @@ def compute_uptime_downtime(store_id, window_start, window_end, tz_name, store_h
     
     return up_seconds, down_seconds
     print(12)
-def write_report_to_csv(report):
+def write_report_to_csv(report, task_id=None):
     fieldnames = [
         'store_id',
         'uptime_last_hour', 'downtime_last_hour',
@@ -254,8 +251,13 @@ def write_report_to_csv(report):
         'uptime_last_week', 'downtime_last_week',
     ]
     
-    with open('store_uptime_report.csv', 'w', newline='') as f:
+    # Create filename with task_id if provided
+    filename = f"store_uptime_report_{task_id}.csv" if task_id else "store_uptime_report.csv"
+    
+    with open(filename, 'w', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         for row in report:
             writer.writerow(row)
+    
+    return filename
